@@ -1,7 +1,8 @@
-﻿version: '3'
+﻿version: '3.9'
 
 services:
   app:
+    container_name: app
     build:
       context: ./docker/app
       dockerfile: Dockerfile
@@ -13,6 +14,7 @@ services:
     tty: true
 
   db:
+    container_name: db
     build:
       context: ./docker/db
       dockerfile: Dockerfile

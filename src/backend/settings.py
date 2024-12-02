@@ -9,8 +9,10 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+
 import os
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,10 +40,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "rest_framework_jwt",
+    'rest_framework_simplejwt',
     "drf_spectacular",
     "corsheaders",
-    "core",
+    "user",
 ]
 
 MIDDLEWARE = [
@@ -87,6 +89,10 @@ DATABASES = {
         "PASSWORD": "password",
         "HOST": "db",
         "PORT": "3306",
+        # テスト用
+        "TEST": {
+            "NAME": "test_database",
+        },
     }
 }
 
@@ -132,20 +138,65 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ユーザーモデルを指定する
-AUTH_USER_MODEL = "core.User"
+AUTH_USER_MODEL = "user.User"
 
 # DRF
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+	'rest_framework_simplejwt.authentication.JWTAuthentication',
+	'rest_framework.authentication.SessionAuthentication',
+	'rest_framework.authentication.BasicAuthentication',
+),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),  # 访问令牌的有效时间
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),    # 刷新令牌的有效时间
+    "ROTATE_REFRESH_TOKENS": False,         # 若为True,则刷新后新的refresh_token有更新的有效时间
+    "BLACKLIST_AFTER_ROTATION": False,      # 若为True,刷新后的token将添加到黑名单中,
+    "UPDATE_LAST_LOGIN": False,
+
+    "ALGORITHM": "HS256",       # 对称算法:HS256 HS384 HS512  非对称算法:RSA
+    "SIGNING_KEY": SECRET_KEY,  # 生成token时所使用的密钥
+    "VERIFYING_KEY": "",        # if signing_key, verifying_key will be ignore.
+    "AUDIENCE": None,
+    "ISSUER": None,
+    "JSON_ENCODER": None,
+    "JWK_URL": None,
+    "LEEWAY": 0,
+
+    "AUTH_HEADER_TYPES": ("Bearer",),   # Authorization: Bearer <token>
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",   # if HTTP_X_ACCESS_TOKEN, X_ACCESS_TOKEN:Bearer <token>
+    "USER_ID_FIELD": "id",  # 使用唯一不变的数据库字段,将包含在生成的令牌中以标识用户
+    "USER_ID_CLAIM": "user_id", # 使用token是需要的用户信息
+    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_TYPE_CLAIM": "token_type",
+    "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
+
+    "JTI_CLAIM": "jti",
+
+    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+
+    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+    "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
+    "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
+    "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
+    "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
+    "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
 # SwaggerUI設定
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'プロジェクト名',
-    'DESCRIPTION': '詳細',
-    'VERSION': '1.0.0',
+    "TITLE": "drf_template",
+    "DESCRIPTION": "drfテンプレート",
+    "VERSION": "1.0.0",
     # api/schemaを表示しない
-    'SERVE_INCLUDE_SCHEMA': False,
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 # CORS設定
@@ -153,8 +204,8 @@ SPECTACULAR_SETTINGS = {
 CORS_ALLOW_CREDENTIALS = True
 # アクセスを許可したいURL（アクセス元）を追加
 CORS_ORIGIN_WHITELIST = (
-'http://127.0.0.1:8080',
-'http://localhost:8080',
+    "http://127.0.0.1:8080",
+    "http://localhost:8080",
 )
 # プリフライト(事前リクエスト)の設定
 # 30分だけ許可
