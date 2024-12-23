@@ -16,6 +16,12 @@ from django.contrib.auth.models import (
 
 from utils.models import BaseModel
 
+def avatar_image_file_path(instance,filename):
+    """新しいレシピ画像のファイル パスを生成します。"""
+    ext = os.path.splitext(filename)[1]
+    filename = f"{uuid.uuid4()}{ext}"
+
+    return os.path.join("user_images", filename)
 
 class UserManager(BaseUserManager):
     """ユーザーのマネージャーモデル"""
@@ -45,7 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     """ユーザーモデル"""
 
     name = models.CharField(max_length=255,blank=False,verbose_name="ユーザーネーム")
-    avatar=models.ImageField(upload_to="",null=True,blank=True,verbose_name="アバター")
+    avatar=models.ImageField(upload_to=avatar_image_file_path,null=True,blank=True,verbose_name="アバター")
     email = models.EmailField(max_length=255, unique=True,verbose_name="メールアドレス")
     is_active = models.BooleanField(default=True, verbose_name="ユーザーの有効状態")
     is_staff = models.BooleanField(default=False, verbose_name="スタッフ権限")
