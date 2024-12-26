@@ -58,9 +58,13 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     objects = UserManager()
 
-    USERNAME_FIELD = "name"
-    REQUIRED_FIELDS=["email", "name"]
+    EMAIL_FIELD = "email"   # メールアドレスとして扱うフィールドの指定
+    USERNAME_FIELD = "email"  # ユーザーを一意に識別するフィールドの指定
+    REQUIRED_FIELDS = ["name"] # createsuperuser コマンド実行時に入力受付を行うフィールドの指定
 
     class Meta:
-        db_table = "users"
+        db_table = "User"
         verbose_name = "ユーザー"
+    
+    def __srt__(self):
+        return self.name

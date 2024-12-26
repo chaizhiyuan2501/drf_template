@@ -14,7 +14,9 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.settings import api_settings
 
-from .serializers import UserCreateSerializer
+from utils.validators import is_invalid_password_format, is_invalid_email_format
+
+from .serializers import UserSerializer
 
 
 class CreateUserView(APIView):
@@ -22,9 +24,9 @@ class CreateUserView(APIView):
 
     # serializer_class = UserCreateSerializer
 
-    def post(self, request,format=None):
+    def post(self, request, format=None):
         # ユーザーのパラメータを取得
-        ser = UserCreateSerializer(data=request.data)
+        ser = UserSerializer(data=request.data)
         name = ser.get("name")
         email = ser.get("email")
         password = ser.get("password")
@@ -48,10 +50,7 @@ class CreateUserView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         # メールアドレスのの正規表現を検証する
-        if not re.match(
-            r"^[a-zA-Z0-9_.+-]+@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$",
-            email,
-        ):
+        if is_invalid_email_format(email):
             return Response(
                 {"error": "入力したメールの形式が間違っています｡"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -63,7 +62,7 @@ class CreateUserView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         # パスワードの長さを検証する
-        if not (6 < len(password) < 18):
+        if is_invalid_password_format(password):
             return Response(
                 {"error": "パスワードの長さは6桁から18桁までです｡"},
                 status=status.HTTP_400_BAD_REQUEST,
